@@ -1,0 +1,12 @@
+def obj_value(object, keys):
+	obj = object
+	key = keys.split('/')[-1]
+	while type(obj.keys() is dict):
+		if key in obj,keys():
+			return obj[key]
+		else:
+			obj = obj[next(iter(obj))]
+
+print(obj_value({"a":{"b":{"c":"d"}}}, 'a/b/c'})
+print(obj_value({"x":{"y":{"z":"a"}}}, 'y/z'})
+print(obj_value({"p":{"q":{"r":"s"}}}, 'p/q'})
