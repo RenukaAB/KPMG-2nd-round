@@ -1,0 +1,78 @@
+provider "google" {
+  version = "3.36.0"
+  project = "your-gcp-project-id"
+  region  = "us-central1"
+}
+
+resource "google_compute_network" "vpc" {
+  name = "your-vpc"
+}
+
+resource "google_compute_subnetwork" "subnet" {
+  name          = "your-subnet"
+  ip_cidr_range = "10.0.1.0/24"
+  network       = google_compute_network.vpc.self_link
+  region        = "us-central1"
+}
+
+resource "google_compute_instance" "web_server" {
+  name         = "web-server"
+  machine_type = "f1-micro"
+  boot_disk {
+    initialize_params {
+      image = "windows-os-cloud/2204-lts"
+    }
+  }
+  network_interface {
+    network = google_compute_network.vpc.self_link
+    subnetwork = google_compute_subnetwork.subnet.self_link
+    access_config {}
+  }
+}
+
+resource "google_compute_instance" "app_server" {
+  name         = "app-server"
+  machine_type = "f1-micro"
+  boot_disk {
+    initialize_params {
+      image = "windows-os-cloud/2204-lts"
+    }
+  }
+  network_interface {
+    network = google_compute_network.vpc.self_link
+    subnetwork = google_compute_subnetwork.subnet.self_link
+    access_config {}
+  }
+}
+
+resource "google_sql_database_instance" "database_engine" {
+  name     = "database-engine"
+  database_version = "POSTGRES_12"
+  region  = "us-central1"
+  settings {
+    tier = "db-custom-1-3840"
+  }
+}
+
+resource "google_compute_forwarding_rule" "load_balancer" {
+  name = "load-balancer"
+  target = google_compute_target_pool.target_pool.self_link
+  port_range = "80"
+  IP_protocol = "TCP"
+}
+
+resource "google_compute_target_pool" "target_pool" {
+  name = "target-pool"
+  instances = [
+    google_compute_instance.web_server.self_link,
+    google_compute_instance.app_server.self_link
+  ]
+}
+
+
+
+
+
+
+
+
